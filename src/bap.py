@@ -305,11 +305,10 @@ class Bap(object):
 
     def call(self, data):
         if isinstance(data, dict):
-            method = request.post
-            return jsons(method(self.url, data=self.dumps(data)))
+            return jsons(request.post(self.url, data=self.dumps(data)))
         else:
             gen = (self.dumps(msg) for msg in data)
-            return jsons(request.post(self.uri, data=gen))
+            return jsons(request.post(self.url, data=gen))
 
 
     def mmap(self, data):
