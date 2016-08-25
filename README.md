@@ -1,17 +1,43 @@
-# Installing
 BAP python bindings
 
-And if you're interested in python bindings, then you can install them using pip:
+# Installing
+
+Install python bindings with pip:
 
 ```bash
 $ pip install git+git://github.com/BinaryAnalysisPlatform/bap-python.git
 ```
 
+Alternatively you can just copy paste files into your project, or clone it
+with git-subtree, or whatever...
 
-# Using
+An optional low-level interface, called [rpc] depends on requests, so
+install [requests] package from pip and `bap-server` from opam.
 
-After BAP and python bindings are properly installed, you can start to
-use it:
+```python
+>>> import bap
+>>> proj = bap.run('/bin/true', ['--symbolizer=ida'])
+>>> text = proj.sections['.text']
+>>> main = proj.program.subs.find('main')
+>>> entry = main.blks[0]
+>>> next = main.blks.find(entry.jmps[0].target.arg)
+```
+
+For more information, read builtin documentation, for example with
+`ipython`:
+
+```python
+    >>> bap?
+```
+
+
+# Using low-level interface
+
+The low-level interface provides an access to disassembler and image
+loader. It uses RPC interface to make calls to the library. So make
+sure that you have installed `requests` and `bap-server` (see
+Installation section).
+
 
 ```python
     >>> import bap
@@ -31,12 +57,3 @@ A more complex example:
         sub     sp, sp, #0xc8
         ... <snip> ...
 ```
-
-For more information, read builtin documentation, for example with
-`ipython`:
-
-```python
-    >>> bap?
-```
-
-Currently, only disassembler and lifter are exposed via python interface.
