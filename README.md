@@ -5,14 +5,32 @@ BAP python bindings
 Install python bindings with pip:
 
 ```bash
-$ pip install git+git://github.com/BinaryAnalysisPlatform/bap-python.git
+$ pip install bap
 ```
 
 Alternatively you can just copy paste files into your project, or clone it
 with git-subtree, or whatever...
 
+
+## Installing low-level bindings
+
 An optional low-level interface, called [rpc] depends on requests, so
-install [requests] package from pip and `bap-server` from opam.
+install [requests] package from pip and `bap-server` from opam:
+
+```bash
+$ pip install bap[rpc]
+$ opam install bap
+```
+
+## Installing development version
+
+You can also install directly from github:
+
+```bash
+pip install git+git://github.com/BinaryAnalysisPlatform/bap-python.git
+````
+
+# Using
 
 ```python
 >>> import bap
