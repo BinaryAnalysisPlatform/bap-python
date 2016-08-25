@@ -3,11 +3,11 @@
 Algebraic Data Types (ADT) is used to represent two kinds of things:
 
 1. A discrimintated union of types, called sum
-2. A combination of some types, called product.
+2. A combination of ADT types, called product.
 
 # Sum types
 
-Sum types represents a concept of generalizing. For example,
+Sum types represent a concept of generalizing. For example,
 on ARM R0 and R1 are all general purpose registers (GPR). Also on ARM
 we have Condition Code registers (CCR) :
 
@@ -48,10 +48,10 @@ class ADT(object):
     """ Algebraic Data Type.
 
     This is a base class for all ADTs. ADT represented by a tuple of arguments,
-    stored in a val field. Arguments should be instances of ADT class, or numbers,
+    stored in a `arg` field. Arguments should be instances of ADT class, or numbers,
     or strings. Empty set of arguments is permitted.
     A one-tuple is automatically untupled, i.e., `Int(12)` has value `12`, not `(12,)`.
-    For convenience, a name of the constructor is provided in `name` field.
+    A name of the constructor is stored in the `constr` field
 
     A structural comparison is provided.
 
@@ -115,7 +115,7 @@ class Visitor(object):
 
         Otherwise, for an ADT of type C the method `visit_C` is looked up in the
         visitors methods dictionary. If it doesn't exist, then `visit_B` is
-        looked up, where `D` is the base class of `C`. The process continues,
+        looked up, where `B` is the base class of `C`. The process continues,
         until the method is found. This is guaranteed to terminate,
         since visit_ADT method is defined.
 
@@ -124,8 +124,8 @@ class Visitor(object):
         Once the method is found it is called. It is the method's responsiblity
         to recurse into sub-elements, e.g., call run method.
 
-        For example, suppose that we want to count negative values in a given
-        BIL expression:
+        For example, suppose that we want to count negative values in
+        some BIL expression:
 
         class CountNegatives(Visitor):
             def __init__(self):
@@ -148,7 +148,7 @@ class Visitor(object):
         visit_Int for Int constructor and visit_NEG for counting unary minuses.
         (Actually we should count for bitwise NOT operation also, since it will
         change the sign bit also, but lets forget about it for the matter of the
-        excercise (and it can be easily fixed just by matching visit_UnOp)).
+        exercise (and it can be easily fixed just by matching visit_UnOp)).
 
         When we hit visit_NEG we toggle current sign, storing its previous value
         and recurse into the operand. After we return from the recursion, we restore

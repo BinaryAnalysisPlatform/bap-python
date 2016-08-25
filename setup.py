@@ -7,5 +7,7 @@ setup (
     version = '1.0.0~alpha',
     package_dir = {'bap' : 'src'},
     packages = ['bap'],
-    install_requires = ['requests']
+    extras_require = {
+        'rpc' : ['requests']
+    }
 )

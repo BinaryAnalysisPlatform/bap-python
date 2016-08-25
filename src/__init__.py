@@ -1,5 +1,43 @@
 r"""Python inteface to BAP.
 
+
+Porcelain Interace
+==================
+
+The high level interface allows to run ``bap`` and get back the information
+that we were able to infer from the file. It consists only from one function,
+``bap.run``, that will drive ``bap`` for you. It is quite versatile, so read the
+documentation for the further information.
+
+
+Example
+-------
+
+>>> import bap
+>>> proj = bap.run('/bin/true', ['--symbolizer=ida'])
+>>> text = proj.sections['.text']
+>>> main = proj.program.subs.find('main')
+>>> entry = main.blks[0]
+>>> next = main.blks.find(entry.jmps[0].target.arg)
+
+It is recommended to explore the interface using ipython or similiar
+interactive toplevels.
+
+We use ADT syntax to communicate with python. It is a syntactical
+subset of Python grammar, so in fact, bap just returns a valid Python
+program, that is then evaluated. The ADT stands for Algebraic Data
+Type, and is described in ``adt`` module. For non-trivial tasks one
+should consider using ``adt.Visitor`` class.
+
+
+
+Plumbing interface [rpc]
+========================
+
+The low level interface provides an access to internal services. It
+uses ``bap-server``, and talks with bap using RPC protocol. It is in
+extras section and must be installed explicitly with ``[rpc]`` tag.
+
 In a few keystrokes:
 
     >>> import bap
@@ -23,7 +61,7 @@ Bap package exposes two functions:
 #. ``image``  loads given file
 
 Disassembling things
-====================
+--------------------
 
 ``disasm`` is a swiss knife for disassembling things. It takes either a
 string object, or something returned by an ``image`` function, e.g.,
@@ -56,7 +94,7 @@ All attributes are self-describing I hope. ``stop_conditions`` is a list of
 that is instance of one of this kind, it will stop.
 
 Reading files
-=============
+-------------
 
 To read and analyze file one should load it with ``image``
 function. This function  returns an instance of class ``Image`` that
@@ -99,6 +137,10 @@ following attributes:
 
 Where data is actual string of bytes.
 """
-__all__ = ['disasm', 'image', 'adt', 'asm', 'arm', 'bil']
 
-from .bap import disasm, image
+from .bap import run
+
+try :
+    from .rpc import disasm, image
+except ImportError:
+    pass
