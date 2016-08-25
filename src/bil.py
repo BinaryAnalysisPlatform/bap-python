@@ -19,7 +19,7 @@ class Load(Exp):
 
 
 class Store(Exp):
-    "Store(mem,idx,val,endian,size"
+    "Store(mem,idx,val,endian,size)"
     @property
     def mem(self) : return self.arg[0]
     @property
