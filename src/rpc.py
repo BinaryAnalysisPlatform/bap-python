@@ -284,7 +284,7 @@ class Bap(object):
             if 'error' in msg:
                 err = Error(msg)
                 if err.severity in DEBUG_LEVEL:
-                    print err
+                    print(err)
             else:
                 return (parse_insn(js) for js in msg['insns'])
 
@@ -304,7 +304,7 @@ class Bap(object):
         kwargs.setdefault('addr', 0)
         addr = kwargs['addr']
         if isinstance(addr, str):
-            addr = long(addr, 0)
+            addr = int(addr, 0)
         kwargs['addr'] = '0x{0:x}'.format(addr)
 
         return self._load_resource({'load_memory_chunk' : kwargs})

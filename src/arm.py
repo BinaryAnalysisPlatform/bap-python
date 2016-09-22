@@ -2,9 +2,9 @@
 
 """Lifted ARM instruction"""
 
-from adt import *
-from asm import *
-from bil import *
+from .adt import *
+from .asm import *
+from .bil import *
 
 class Reg(ADT) : pass
 class Nil(Reg) : pass

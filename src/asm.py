@@ -64,9 +64,3 @@ def exists(cont,f):
         return True
     except StopIteration:
         return False
-
-
-if __name__ == "__main__":
-    print Reg('R0')
-    for insn in ["Reg(\"R0\")", "Imm(5)", "Imm(14)", "Reg(\"Nil\")", "Reg(\"Nil\")"]:
-        print eval(insn)

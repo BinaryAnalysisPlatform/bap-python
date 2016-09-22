@@ -2,7 +2,7 @@
 
 """BAP BIL Python representation"""
 
-from adt import *
+from .adt import *
 
 
 class Exp(ADT)  : pass     # Abstract base for all expressions
@@ -185,61 +185,3 @@ class Mem(Type) :
 
 def loads(s):
     return eval(s)
-
-# A playground.
-
-if __name__ == "__main__":
-
-    exp = Load(Int(12,32),Int(14,32), LittleEndian())
-    print exp
-    exp = Load(exp, exp, BigEndian())
-
-
-    class CountEvens(Visitor):
-        def __init__(self):
-            self.count = 0
-
-
-        def visit_Int(self, int):
-            self.count += 1
-
-    class CountNegatives(Visitor):
-        def __init__(self):
-            self.neg = False
-            self.count = 0
-
-        def visit_Int(self, int):
-            if int.value < 0 and not self.neg \
-              or int.value > 0 and self.neg:
-                self.count += 1
-
-        def visit_MINUS(self, op):
-            self.run(op.lhs)
-            was = self.neg
-            self.neg = not was
-            self.run(op.rhs)
-            self.neg = was
-
-        def visit_NEG(self, op):
-            was = self.neg
-            self.neg = not was
-            self.run(op.arg)
-            self.neg = was
-
-    print "%s" % exp
-    counter = CountEvens()
-    counter.run(exp)
-    print counter.count
-    exp = eval("%s" % exp)
-    print "%s" % exp
-    counter = CountEvens()
-    counter.run(exp)
-    print counter.count
-
-    minus_one = NEG(NEG(Int(-1,32)))
-    zero = MINUS(minus_one, minus_one)
-    print zero
-
-    nc = CountNegatives()
-    nc.run(zero)
-    print nc.count

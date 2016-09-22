@@ -3,8 +3,8 @@
 """BIR - BAP Intermediate Representation"""
 
 from collections import Sequence,Mapping
-from adt import *
-from bil import *
+from .adt import *
+from .bil import *
 
 
 class Project(ADT) :
@@ -236,82 +236,6 @@ class Def(Term) :
         "value expression"
         return self.arg[3]
 
-class Seq(ADT,Sequence) :
-    def __init__(self, *args) :
-        super(Seq,self).__init__(args)
-        self.elements = args[0]
-
-    def __getitem__(self,i) :
-        return self.elements.__getitem__(i)
-
-    def __len__(self) :
-        return self.elements.__len__()
-
-    def find(self,key, d=None) :
-        """find(key[, d=None]) -> t
-
-        Looks up for a term that matches with a given key.
-
-        If the key is a string, starting with `@' or `%', then a term
-        with the given identifier name is returned.  Otherwise a term
-        with a matching `name' attribute is returned (useful to find
-        subroutines).
-
-        If a key is an instance of Tid class, then a term with
-        corresponding tid is returned.
-
-        If a key is a number, or an instance of `bil.Int' class, then
-        a term with a matching address is returned.
-
-        Example
-        -------
-
-        In the following example, all searches return the
-        same object
-
-
-        >>> main = proj.program.subs.find('main')
-        >>> main = proj.program.subs.find(main.id)
-        >>> main = proj.program.subs.find(main.id.name)
-        """
-        def by_id(t,key) : return t.id == key
-        def by_name(t,key) :
-            if key.startswith(('@','%')):
-                return t.id.name == key
-            else:
-                return hasattr(t,'name') and t.name == key
-        def by_addr(t,key) :
-            value = t.attrs.get('address', None)
-            if value is not None:
-                return parse_addr(value) == key
-
-        test = by_addr
-        if isinstance(key,str):
-            test = by_name
-        elif isinstance(key,Tid):
-            test = by_id
-        elif isinstance(key,Int):
-            key = key.value
-            test = by_addr
-
-        for t in self :
-            if test(t,key) : return t
-        return d
-
-
-class Map(ADT,Mapping) :
-    def __init__(self, *args) :
-        super(Map,self).__init__(args)
-        self.elements = dict((x.arg[0],x.arg[1]) for x in args[0])
-
-    def __getitem__(self,i) :
-        return self.elements.__getitem__(i)
-
-    def __len__(self) :
-        return self.elements.__len__()
-
-    def __iter__(self) :
-        return self.elements.__iter__()
 
 class Attrs(Map) :
     "A mapping from attribute names to attribute values"
@@ -403,7 +327,7 @@ class Section(ADT,Sequence) :
     @property
     def end(self) :
         "an address of last byte"
-        return beg + len(self.data)
+        return self.beg + len(self.data)
 
     def __getitem__(self,i) :
         return self.data.__getitem__(i)

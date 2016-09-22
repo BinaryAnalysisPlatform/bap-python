@@ -1,5 +1,5 @@
 from subprocess import Popen,PIPE
-import bir
+from . import bir
 
 
 class BapError(Exception):
