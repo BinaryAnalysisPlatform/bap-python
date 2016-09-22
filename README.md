@@ -2,7 +2,7 @@ BAP python bindings
 
 # Installing
 
-Install python bindings with pip:
+Install python bindings with pip (after you installed `bap`):
 
 ```bash
 $ pip install bap
