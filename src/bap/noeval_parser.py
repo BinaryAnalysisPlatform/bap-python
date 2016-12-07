@@ -8,7 +8,7 @@ import gc
 import sys
 import time
 
-from . import bir
+# NOTE: uses bap.bir, but cannot import at module level (circular references)
 
 
 def toint(string, start, end):
