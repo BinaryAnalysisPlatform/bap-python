@@ -104,6 +104,70 @@ def test_parser_11():
     tok = lparser(s)
     assert tok == "'"
 
+def test_compare_to_old_escapes_1(tmpdir):
+    # pylint: disable=missing-docstring,invalid-name
+    import os
+    tmpdir.join('test.c').write('int main() { return 0; }')
+    with tmpdir.as_cwd():
+        assert os.system('gcc -o test.out test.c') == 0
+        comment = r'a slash: \\'
+        main([None, 'test.out'], extras=([
+            '--map-terms-with',
+            '((true) (comment "{}"))'.format(comment),
+            '--map-terms'],))
+        main([None, 'test.out', 'skip'], extras=([
+            '--map-terms-with',
+            '((true) (comment "{}"))'.format(comment),
+            '--map-terms'],))
+
+def test_compare_to_old_escapes_2(tmpdir):
+    # pylint: disable=missing-docstring,invalid-name
+    import os
+    tmpdir.join('test.c').write('int main() { return 0; }')
+    with tmpdir.as_cwd():
+        assert os.system('gcc -o test.out test.c') == 0
+        comment = r'an escaped quote: \"'
+        main([None, 'test.out'], extras=([
+            '--map-terms-with',
+            '((true) (comment "{}"))'.format(comment),
+            '--map-terms'],))
+        main([None, 'test.out', 'skip'], extras=([
+            '--map-terms-with',
+            '((true) (comment "{}"))'.format(comment),
+            '--map-terms'],))
+
+def test_compare_to_old_escapes_3(tmpdir):
+    # pylint: disable=missing-docstring,invalid-name
+    import os
+    tmpdir.join('test.c').write('int main() { return 0; }')
+    with tmpdir.as_cwd():
+        assert os.system('gcc -o test.out test.c') == 0
+        comment = r'an escaped slash and then escaped quote: \\\"'
+        main([None, 'test.out'], extras=([
+            '--map-terms-with',
+            '((true) (comment "{}"))'.format(comment),
+            '--map-terms'],))
+        main([None, 'test.out', 'skip'], extras=([
+            '--map-terms-with',
+            '((true) (comment "{}"))'.format(comment),
+            '--map-terms'],))
+
+def test_compare_to_old_escapes_4(tmpdir):
+    # pylint: disable=missing-docstring,invalid-name
+    comment = r'an escaped slash and then escaped quote: \\\"'
+    import os
+    tmpdir.join('test.c').write('int main() { return 0; }')
+    comment_file = tmpdir.join('comment.scm')
+    comment_file.write('((true) (comment "{}"))'.format(comment))
+    with tmpdir.as_cwd():
+        assert os.system('gcc -o test.out test.c') == 0
+        main([None, 'test.out'], extras=([
+            '--map-terms-using=%s' % comment_file,
+            '--map-terms'],))
+        main([None, 'test.out', 'skip'], extras=([
+            '--map-terms-using=%s' % comment_file,
+            '--map-terms'],))
+
 def test_parser_badinput_1():
     # pylint: disable=missing-docstring,invalid-name
     with pytest.raises(ParserInputError):
@@ -372,7 +436,7 @@ def _compare_proj_str(estr, possible_actual_strs):
                 assert False, exceptions
 
 
-def main(argv=None, debugging=False):
+def main(argv=None, debugging=False, extras=()):
     '''
     Main entry point, allows quick comparison of eval-based adt parser with this
     eval-free adt parser.
@@ -406,7 +470,7 @@ def main(argv=None, debugging=False):
         skipeval = len(argv) > 2
         if skipeval:
             logger.info("Calling bap.run(%r, parser=PASSTHRU)", toparse)
-            projtxt = bap.run(toparse, parser={'format':'adt', 'load':lambda s: s})
+            projtxt = bap.run(toparse, *extras, parser={'format':'adt', 'load':lambda s: s})
             if not isinstance(projtxt, str): # on python3 projtxt is bytes not str
                 estr = projtxt.decode('utf-8')
             else:
@@ -416,14 +480,14 @@ def main(argv=None, debugging=False):
             # normalize strings in input
         else:
             logger.info("Calling bap.run(%r, parser=WITHEVAL)", toparse)
-            origproj = bap.run(toparse, parser=witheval_adt_parser)
+            origproj = bap.run(toparse, *extras, parser=witheval_adt_parser)
 
         # make sure to do this here not before calling bap the first time
         # Once this runs, if a lot of memory is used, Python can't create
         # child processes in all cases because os.fork() will fail under heavy
         # memory load
         logger.info("Calling bap.run(%r, parser=EVALFREE)", toparse)
-        new_proj = bap.run(toparse, parser=EVALFREE_ADT_PARSER)
+        new_proj = bap.run(toparse, *extras, parser=EVALFREE_ADT_PARSER)
 
         if not skipeval:
             if origproj == new_proj: # done!
