@@ -78,6 +78,32 @@ def test_parser_8():
     tok = lparser(s)
     assert tok == ("abc",)
 
+def test_parser_9():
+    # pylint: disable=missing-docstring,invalid-name
+    s = r'"\""'
+    tok = lparser(s)
+    assert tok == '"'
+
+def test_parser_10():
+    # pylint: disable=missing-docstring,invalid-name
+    s = '"\\\\"'
+    assert eval(s) == '\\' # pylint: disable=eval-used
+    tok = lparser(s)
+    assert tok == '\\'
+
+def test_parser_12():
+    # pylint: disable=missing-docstring,invalid-name
+    s = r'"\\\""'
+    assert eval(s) == '\\"' # pylint: disable=eval-used
+    tok = lparser(s)
+    assert tok == '\\"'
+
+def test_parser_11():
+    # pylint: disable=missing-docstring,invalid-name
+    s = r'"\'"'
+    tok = lparser(s)
+    assert tok == "'"
+
 def test_parser_badinput_1():
     # pylint: disable=missing-docstring,invalid-name
     with pytest.raises(ParserInputError):

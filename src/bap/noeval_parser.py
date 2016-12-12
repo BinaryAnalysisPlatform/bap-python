@@ -90,9 +90,23 @@ def _try_update_parent(parent, objs, stk):
 
 def _parse_str(in_c, in_s, i, objs, stk):
     del in_c # unused
-    endpos = in_s.find('"', i+1)
-    if endpos < 0:
-        raise ParserInputError("mismatched double-quote")
+    endpos = i
+    while True: # find non-escaped double quote
+        endpos = in_s.find('"', endpos+1)
+        if endpos < 0:
+            raise ParserInputError("mismatched double-quote")
+        if in_s[endpos-1] == '\\': # may be escaped double quote...
+            # or could be a real quote after escaped slash
+            # count slashes going back
+            k = endpos - 2
+            while k >= 0 and in_s[k] == '\\':
+                k -= 1
+            slashes = (endpos - 1) - k
+            if slashes % 2 == 0: # this is really an ending double quote
+                break
+            # otherwise it's not
+            continue
+        break
     k = stk[-1]
     assert all((in_s[_k] in (' ', '\t', '\n') for _k in range(k, i))), \
             'pre quote is not whitespace at [%d..%d)' % (k, i)
