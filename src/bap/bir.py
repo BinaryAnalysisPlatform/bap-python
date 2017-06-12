@@ -5,6 +5,7 @@
 from collections import Sequence,Mapping
 from .adt import *
 from .bil import *
+from . import noeval_parser
 
 
 class Project(ADT) :
@@ -363,4 +364,4 @@ def parse_addr(str):
 
 def loads(s):
     "loads bir object from string"
-    return eval(s)
+    return noeval_parser.parser(s)
