@@ -1,15 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, time, atexit
+import os, time, atexit, sys
 from signal import signal, SIGTERM
 import requests
 from subprocess import Popen
 from mmap import mmap
-from urlparse import urlparse, parse_qs
+if sys.version_info > (3, 0):
+    from urllib.parse import urlparse, parse_qs
+else:
+    from urlparse import urlparse, parse_qs
+
 from tempfile import NamedTemporaryFile
 import json
-import adt, arm, asm, bil
+from . import adt, arm, asm, bil
 
 import threading
 

@@ -11,7 +11,7 @@ setup (
     maintainer = 'Ivan Gotovchits',
     maintainer_email = 'ivg@ieee.org',
     license = 'MIT',
-    package_dir = {'bap' : 'src'},
+    package_dir = {'' : 'src'},
     packages = ['bap'],
     extras_require = {
         'rpc' : ['requests']

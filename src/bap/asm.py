@@ -2,7 +2,7 @@
 
 """Disassembled instuctions"""
 
-from adt import ADT
+from .adt import ADT
 
 class Kind(ADT) : pass
 class Having_side_effects(Kind)    : pass
