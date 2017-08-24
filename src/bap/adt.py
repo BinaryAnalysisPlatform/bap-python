@@ -490,7 +490,8 @@ class Seq(ADT,Sequence) :
         test = by_addr
         if isinstance(key,str):
             test = by_name
-        elif isinstance(key,Tid):
+        elif hasattr(key,id):
+            key = key.id
             test = by_id
         elif isinstance(key,Int):
             key = key.value
