@@ -462,8 +462,8 @@ class Seq(ADT,Sequence) :
         If a key is an instance of Tid class, then a term with
         corresponding tid is returned.
 
-        If a key is a number, or an instance of `bil.Int' class, then
-        a term with a matching address is returned.
+        If a key is a number, or an instance of `bil.Int' class or is
+        an integer, then a term with a matching address is returned.
 
         Example
         -------
@@ -475,14 +475,15 @@ class Seq(ADT,Sequence) :
         >>> main = proj.program.subs.find('main')
         >>> main = proj.program.subs.find(main.id)
         >>> main = proj.program.subs.find(main.id.name)
+
         """
-        def by_id(t,key) : return t.id == key
-        def by_name(t,key) :
-            if key.startswith(('@','%')):
-                return t.id.name == key
+        def by_id(t, k) : return t.id.number == k
+        def by_name(t,k) :
+            if k.startswith(('@','%')):
+                return t.id.name == k
             else:
-                return hasattr(t,'name') and t.name == key
-        def by_addr(t,key) :
+                return hasattr(t, 'name') and t.name == k
+        def by_addr(t,k) :
             value = t.attrs.get('address', None)
             if value is not None:
                 return parse_addr(value) == key
@@ -490,9 +491,10 @@ class Seq(ADT,Sequence) :
         test = by_addr
         if isinstance(key,str):
             test = by_name
-        elif isinstance(key,Tid):
+        elif hasattr(key,'constr') and key.constr == 'Tid':
+            key = key.number
             test = by_id
-        elif isinstance(key,Int):
+        elif hasattr(key,'constr') and key.constr == 'Int':
             key = key.value
             test = by_addr
 

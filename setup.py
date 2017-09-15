@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup (
     name = 'bap',
-    version = '1.0.0',
+    version = '1.1.0',
     description = 'Python bindings to Binary Analysis Platform (BAP)',
     author = 'BAP Team',
     url = 'https://github.com/BinaryAnalysisPlatform/bap-python',
