@@ -2,24 +2,25 @@ BAP python bindings
 
 # Installing
 
-Install python bindings with pip (after you installed `bap`):
+Install python bindings with pip (after you have installed `bap`):
 
 ```bash
 $ pip install bap
 ```
 
 Alternatively you can just copy paste files into your project, or clone it
-with git-subtree, or whatever...
+with git-subtree.
 
 
 ## Installing low-level bindings
 
-An optional low-level interface, called [rpc] depends on requests, so
-install [requests] package from pip and `bap-server` from opam:
+An optional low-level interface, called [rpc] depends on the requests
+library and the bap-server package. To use it, you need to install
+them from pip and opam correspondigly:
 
 ```bash
 $ pip install bap[rpc]
-$ opam install bap
+$ opam install bap-server
 ```
 
 ## Installing development version
@@ -34,8 +35,7 @@ pip install git+git://github.com/BinaryAnalysisPlatform/bap-python.git
 
 ```python
 >>> import bap
->>> proj = bap.run('/bin/true', ['--symbolizer=ida'])
->>> text = proj.sections['.text']
+>>> proj = bap.run('/bin/true')
 >>> main = proj.program.subs.find('main')
 >>> entry = main.blks[0]
 >>> next = main.blks.find(entry.jmps[0].target.arg)
