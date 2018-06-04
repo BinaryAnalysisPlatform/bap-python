@@ -2,23 +2,32 @@
 '''
 Parser for ADT string from bap that does not use eval
 
-The nieve eval-based version runs into out-of-memory conditions on large files
+The naive eval-based version runs into out-of-memory conditions on large files
 '''
 import gc
 import sys
 import time
 
+from subprocess import check_output
+
+# bap.1.3 breaks the format of the following types.  it prints hexes
+# without prefixing them with the `0x` escape. To fix it without
+# fixing bap, we will treat integers inside this parents as
+# hexadecimals if there is no prefix.
+BROKEN_TYPES = [
+    'Section',
+    'Region'
+]
+
 # NOTE: uses bap.bir, but cannot import at module level (circular references)
 
-
-def toint(string, start, end):
+def toint(string, start, end, base=10):
     '''
     Convert substring string[start:end] to integer/long without eval
 
     Note: may contain leading whitespace
     '''
     istr = string[start:end].lstrip()
-
     if sys.version_info > (3,): # then longs don't exist
         if istr.endswith('L'):
             istr = istr.rstrip('L')
@@ -31,7 +40,7 @@ def toint(string, start, end):
     if istr.startswith('0x'):
         return of_str(istr, 16)
     else:
-        return of_str(istr)
+        return of_str(istr, base)
 
 def setup_progress(totalitems):
     '''
@@ -159,17 +168,19 @@ def _parse_end(in_c, in_s, i, objs, stk):
         raise ParserInputError('Mismatched input stream')
     j = stk[-1]
     parent = objs[j]
+    ptyp = parent['typ']
     assert isinstance(parent, dict)
     assert parent, 'parent is empty'
-    assert parent['typ'] != 'int', 'parent wrong type: %r' % (parent['typ'])
+    assert ptyp != 'int', 'parent wrong type: %r' % (parent['typ'])
     assert 'children' in parent
     if top: # add to parent if non empty
         # make real int before appending
         if top['typ'] == 'd': # int
             try:
-                top = toint(in_s, k, i)
+                base = 16 if ptyp in BROKEN_TYPES else 10
+                top = toint(in_s, k, i, base)
             except ValueError:
-                raise ParserInputError("Integer expected between [%d..%d)" % (top, i))
+                raise ParserInputError("Integer expected between [%d..%d)" % (k, i))
         parent['children'].append(top)
     if in_c == ',': # add blank object and move on
         # next obj
@@ -179,7 +190,6 @@ def _parse_end(in_c, in_s, i, objs, stk):
         return i
     else: # we are ending a tuple/list/app do it
         # maybe handle apply (num and seq are earlier)
-        ptyp = parent['typ']
         if ptyp == '[':
             if in_c != ']':
                 raise ParserInputError('close %r and open %r mismatch' % (in_c, ptyp))
@@ -325,4 +335,3 @@ EVALFREE_ADT_PARSER = {
     'format': 'adt',
     'load': parser
 }
-
