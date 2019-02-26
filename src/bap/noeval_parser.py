@@ -10,18 +10,9 @@ import time
 
 from subprocess import check_output
 
-# bap.1.3 breaks the format of the following types.  it prints hexes
-# without prefixing them with the `0x` escape. To fix it without
-# fixing bap, we will treat integers inside this parents as
-# hexadecimals if there is no prefix.
-BROKEN_TYPES = [
-    'Section',
-    'Region'
-]
-
 # NOTE: uses bap.bir, but cannot import at module level (circular references)
 
-def toint(string, start, end, base=10):
+def toint(string, start, end):
     '''
     Convert substring string[start:end] to integer/long without eval
 
@@ -40,7 +31,7 @@ def toint(string, start, end, base=10):
     if istr.startswith('0x'):
         return of_str(istr, 16)
     else:
-        return of_str(istr, base)
+        return of_str(istr)
 
 def setup_progress(totalitems):
     '''
@@ -177,8 +168,7 @@ def _parse_end(in_c, in_s, i, objs, stk):
         # make real int before appending
         if top['typ'] == 'd': # int
             try:
-                base = 16 if ptyp in BROKEN_TYPES else 10
-                top = toint(in_s, k, i, base)
+                top = toint(in_s, k, i)
             except ValueError:
                 raise ParserInputError("Integer expected between [%d..%d)" % (k, i))
         parent['children'].append(top)
