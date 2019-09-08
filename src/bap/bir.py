@@ -253,7 +253,8 @@ class Values(Map) :
     It is a mapping from the tid of a preceeding block,
     to an expression that denotes a value.
     """
-    pass
+    def __init__(self, *args):
+        super().__init__([ADT(p) for p in args[0]])
 
 class Tid(ADT) :
     """Tid(id,name=None) term unique identifier.
