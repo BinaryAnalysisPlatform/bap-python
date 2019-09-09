@@ -254,7 +254,7 @@ class Values(Map) :
     to an expression that denotes a value.
     """
     def __init__(self, *args):
-        super(Map,self).__init__(args)
+        super(Map, self).__init__(args) # pylint: disable=bad-super-call
         self.elements = dict(args[0])
 
 class Tid(ADT) :
