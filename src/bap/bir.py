@@ -254,7 +254,8 @@ class Values(Map) :
     to an expression that denotes a value.
     """
     def __init__(self, *args):
-        super().__init__([ADT(p) for p in args[0]])
+        super(Map,self).__init__(args)
+        self.elements = dict(args[0])
 
 class Tid(ADT) :
     """Tid(id,name=None) term unique identifier.
