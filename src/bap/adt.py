@@ -182,7 +182,8 @@ leading to fragile and hard to support programs.
 
 """
 
-from collections import Iterable,Sequence,Mapping
+from collections import Iterable, Sequence, Mapping
+
 
 class ADT(object):
     """Algebraic Data Type.
@@ -197,23 +198,25 @@ class ADT(object):
     A structural comparison is provided.
 
     """
+
     def __init__(self, *args):
         self.constr = self.__class__.__name__
         self.arg = args if len(args) != 1 else args[0]
 
-    def __cmp__(self,other):
+    def __cmp__(self, other):
         return self.__dict__.__cmp__(other.__dict__)
 
     def __repr__(self):
         def qstr(x):
             if isinstance(x, (int)):
-                return '0x{0:x}'.format(x)
+                return "0x{0:x}".format(x)
             elif isinstance(x, ADT):
                 return str(x)
             elif isinstance(x, tuple):
                 return "(" + ", ".join(qstr(i) for i in x) + ")"
             else:
                 return '"{0}"'.format(x)
+
         def args():
             if isinstance(self.arg, tuple):
                 return ", ".join(qstr(x) for x in self.arg)
@@ -412,14 +415,13 @@ class Visitor(object):
     def __induct(self, xs):
         return next((r for r in (self.run(x) for x in xs) if r), None)
 
-    def visit_Seq(self,adt):
+    def visit_Seq(self, adt):
         """Deconstructs sequences"""
         return self.__induct(adt.arg[0])
 
-    def visit_Map(self,adt):
+    def visit_Map(self, adt):
         """Deconstructs maps"""
         return self.__induct(adt.arg[0])
-
 
     def run(self, adt):
         """visitor.run(adt) -> result
@@ -438,18 +440,19 @@ class Visitor(object):
                         if meth == "visit":
                             break
 
-class Seq(ADT,Sequence) :
-    def __init__(self, *args) :
-        super(Seq,self).__init__(args)
+
+class Seq(ADT, Sequence):
+    def __init__(self, *args):
+        super(Seq, self).__init__(args)
         self.elements = args[0]
 
-    def __getitem__(self,i) :
+    def __getitem__(self, i):
         return self.elements.__getitem__(i)
 
-    def __len__(self) :
+    def __len__(self):
         return self.elements.__len__()
 
-    def find(self,key, d=None) :
+    def find(self, key, d=None):
         """find(key[, d=None]) -> t
 
         Looks up for a term that matches with a given key.
@@ -477,44 +480,49 @@ class Seq(ADT,Sequence) :
         >>> main = proj.program.subs.find(main.id.name)
 
         """
-        def by_id(t, k) : return t.id.number == k
-        def by_name(t,k) :
-            if k.startswith(('@','%')):
+
+        def by_id(t, k):
+            return t.id.number == k
+
+        def by_name(t, k):
+            if k.startswith(("@", "%")):
                 return t.id.name == k
             else:
-                return hasattr(t, 'name') and t.name == k
-        def by_addr(t,k) :
-            value = t.attrs.get('address', None)
+                return hasattr(t, "name") and t.name == k
+
+        def by_addr(t, k):
+            value = t.attrs.get("address", None)
             if value is not None:
                 return parse_addr(value) == key
 
         test = by_addr
-        if isinstance(key,str):
+        if isinstance(key, str):
             test = by_name
-        elif hasattr(key,'constr') and key.constr == 'Tid':
+        elif hasattr(key, "constr") and key.constr == "Tid":
             key = key.number
             test = by_id
-        elif hasattr(key,'constr') and key.constr == 'Int':
+        elif hasattr(key, "constr") and key.constr == "Int":
             key = key.value
             test = by_addr
 
-        for t in self :
-            if test(t,key) : return t
+        for t in self:
+            if test(t, key):
+                return t
         return d
 
 
-class Map(ADT,Mapping) :
-    def __init__(self, *args) :
-        super(Map,self).__init__(args)
-        self.elements = dict((x.arg[0],x.arg[1]) for x in args[0])
+class Map(ADT, Mapping):
+    def __init__(self, *args):
+        super(Map, self).__init__(args)
+        self.elements = dict((x.arg[0], x.arg[1]) for x in args[0])
 
-    def __getitem__(self,i) :
+    def __getitem__(self, i):
         return self.elements.__getitem__(i)
 
-    def __len__(self) :
+    def __len__(self):
         return self.elements.__len__()
 
-    def __iter__(self) :
+    def __iter__(self):
         return self.elements.__iter__()
 
 
@@ -528,13 +536,17 @@ def visit(visitor, adt):
     return visitor
 
 
-
-
 if __name__ == "__main__":
-    class Fruit(ADT) : pass
-    class Bannana(Fruit) : pass
-    class Apple(Fruit) : pass
 
-    assert(Bannana() == Bannana())
-    assert(Bannana() != Apple())
-    assert(  Apple() <  Bannana())
+    class Fruit(ADT):
+        pass
+
+    class Bannana(Fruit):
+        pass
+
+    class Apple(Fruit):
+        pass
+
+    assert Bannana() == Bannana()
+    assert Bannana() != Apple()
+    assert Apple() < Bannana()

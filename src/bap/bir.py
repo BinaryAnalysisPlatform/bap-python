@@ -2,16 +2,17 @@
 
 """BIR - BAP Intermediate Representation"""
 
-from collections import Sequence,Mapping
+from collections import Sequence, Mapping
 from .adt import *
 from .bil import *
 from . import noeval_parser
 
 
-class Project(ADT) :
+class Project(ADT):
     """A collection of data associated with a disassembled program"""
+
     @property
-    def attrs(self) :
+    def attrs(self):
         """A dictionary of attributes that are global to a project.
 
         Example:
@@ -20,7 +21,7 @@ class Project(ADT) :
         return self.arg[0]
 
     @property
-    def sections(self) :
+    def sections(self):
         """code and data sections of a file.
 
         Often a binary is split into several named sections.  This is
@@ -34,7 +35,7 @@ class Project(ADT) :
         return self.arg[1]
 
     @property
-    def memmap(self) :
+    def memmap(self):
         """a mapping from memory regions to arbitrary attributes.
 
         Some facts may be discovered about a particular memory region
@@ -43,56 +44,63 @@ class Project(ADT) :
         return self.arg[2]
 
     @property
-    def program(self) :
+    def program(self):
         """a program in BAP Intermediate Representation (BIR)"""
         return self.arg[3]
 
-class Term(ADT) :
+
+class Term(ADT):
     """Term(id,attrs,...) a program term.
 
     Every term has a dictionary of attributes, associated with it, and
     a unique term identifier.
     """
+
     @property
-    def id(self) :
+    def id(self):
         "term.id() -> Tid(id,name)"
         return self.arg[0]
 
     @property
-    def attrs(self) : return self.arg[1]
+    def attrs(self):
+        return self.arg[1]
 
-class Program(Term) :
+
+class Program(Term):
     """Program(id,attrs,Subs(s1,s2,..,sN))
      A program is a term that contains a set of subroutines."""
 
     @property
-    def subs(self) : return self.arg[2]
+    def subs(self):
+        return self.arg[2]
 
-class Sub(Term) :
+
+class Sub(Term):
     """Sub(id,Attrs(...),name,Args(...),Blks(...))
     A subroutine has a sequence of arguments and basic blocks
     """
 
     @property
-    def name(self) :
+    def name(self):
         "subroutine name"
         return self.arg[2]
 
     @property
-    def args(self) :
+    def args(self):
         "a list of subroutine arguments"
         return self.arg[3]
 
     @property
-    def blks(self) :
+    def blks(self):
         "subroutine basic blocks, the first is the entry"
         return self.arg[4]
 
-class Arg(Term) :
+
+class Arg(Term):
     """Arg(id,attrs,lhs,rhs,intent=None) - a subroutine argument"""
 
     @property
-    def var(self) :
+    def var(self):
         """a variable associated with the argument, e.g.,
 
         >>> main = proj.subs.find('main')
@@ -103,161 +111,194 @@ class Arg(Term) :
         return self.arg[2]
 
     @property
-    def exp(self) :
+    def exp(self):
         "a BIL expression associated with the argument"
         return self.arg[3]
 
     @property
-    def intent(self) :
+    def intent(self):
         "an instance of Intent class or None if unknown"
         None if len(self.arg) == 4 else self.arg[4]
 
-class Blk(Term) :
+
+class Blk(Term):
     """Blk(id,attrs,(p1,..,pL),(d1,..,dM),(j1,..,jN))
        A basic block is a sequence of phi-nodes, defintions and jumps.
     """
+
     @property
-    def phis(self) :
+    def phis(self):
         "phi-nodes"
         return self.arg[2]
+
     @property
-    def defs(self) :
+    def defs(self):
         "definitions"
         return self.arg[3]
+
     @property
-    def jmps(self) :
+    def jmps(self):
         "jumps"
         return self.arg[4]
 
-class Def(Term) :
+
+class Def(Term):
     "Def(id,attrs,Var(lhs),Exp(rhs)) assign rhs to lhs"
+
     @property
-    def lhs(self) :
+    def lhs(self):
         "an assigned variable"
         return self.arg[2]
+
     @property
-    def rhs(self) :
+    def rhs(self):
         "value expression"
         return self.arg[3]
 
 
-class Jmp(Term) :
+class Jmp(Term):
     "Jmp(id,attrs,cond,target) base class for jump terms"
+
     @property
-    def cond(self) :
+    def cond(self):
         "guard condition"
         return self.arg[2]
 
     @property
-    def target(self) :
+    def target(self):
         "jump target"
         return self.arg[3]
 
-class Goto(Jmp) :
+
+class Goto(Jmp):
     "Goto(id,attrs,cond,target) control flow local to a subroutine"
     pass
 
-class Call(Jmp) :
+
+class Call(Jmp):
     """Call(id,attrs,(calee,returns))
     a transfer of control flow to another subroutine"""
 
     @property
-    def calee(self) :
+    def calee(self):
         "call destination"
         return self.target[0]
 
     @property
-    def returns(self) :
+    def returns(self):
         "a basic block to which a call will return if ever"
         return self.target[1] if len(self.target[1]) == 2 else None
 
-class Ret(Jmp)  :
+
+class Ret(Jmp):
     "Ret(id,attrs,label) - return from a call"
     pass
 
-class Exn(Jmp)  :
+
+class Exn(Jmp):
     "Exn(id,attrs,(number,next)) - CPU exception"
+
     @property
-    def number(self) :
+    def number(self):
         "exception number"
         return self.target[0]
 
     @property
-    def next(self) :
+    def next(self):
         """next instruction to be executed after the
         exception handler finishes"""
         return self.target[1]
 
-class Label(ADT) : pass
 
-class Direct(Label) :
+class Label(ADT):
+    pass
+
+
+class Direct(Label):
     "Direct(tid) a statically known target of a jump"
     pass
 
-class Indirect(Label) :
+
+class Indirect(Label):
     "Indirect(exp) indirect jump that is computed at runtime"
     pass
 
-class Intent(ADT) :
+
+class Intent(ADT):
     "argument intention"
     pass
-class In(Intent) :
+
+
+class In(Intent):
     "input argument"
     pass
-class Out(Intent) :
+
+
+class Out(Intent):
     "output argument"
     pass
-class Both(Intent) :
+
+
+class Both(Intent):
     "input/output argument"
     pass
 
-class Phi(Term) :
+
+class Phi(Term):
     """Phi(id,attrs,lhs,Values(b1,..,bM))) a term whose value
     depends on chosen control flow path"""
+
     @property
-    def lhs(self) :
+    def lhs(self):
         "defined variable"
         return self.arg[2]
 
     @property
-    def value(self) :
+    def value(self):
         """a mapping from the tid of the preceeding block to
         an expression that defines a value of phi-node"""
         return self.arg[3]
 
-class Def(Term) :
+
+class Def(Term):
     "Def(id,attrs,lhs,rhs) - assignment"
+
     @property
-    def lhs(self) :
+    def lhs(self):
         "program variable to be assigned"
         return self.arg[2]
 
     @property
-    def rhs(self) :
+    def rhs(self):
         "value expression"
         return self.arg[3]
 
 
-class Attrs(Map) :
+class Attrs(Map):
     "A mapping from attribute names to attribute values"
     pass
 
-class Attr(ADT) :
+
+class Attr(ADT):
     """Attribute is a pair of attribute name and value,
     both represented with str"""
+
     pass
 
-class Values(Map) :
+
+class Values(Map):
     """A set of possible values, taken by a phi-node.
 
     It is a mapping from the tid of a preceeding block,
     to an expression that denotes a value.
     """
+
     def __init__(self, *args):
-        super(Map, self).__init__(args) # pylint: disable=bad-super-call
+        super(Map, self).__init__(args)  # pylint: disable=bad-super-call
         self.elements = dict(args[0])
 
-class Tid(ADT) :
+
+class Tid(ADT):
     """Tid(id,name=None) term unique identifier.
 
     name is an optional human readable identifier, that
@@ -265,8 +306,8 @@ class Tid(ADT) :
 
     """
 
-    def __init__(self,*args):
-        super(Tid,self).__init__(*args)
+    def __init__(self, *args):
+        super(Tid, self).__init__(*args)
         noname = not isinstance(self.arg, tuple)
         self.number = self.arg if noname else self.arg[0]
         self.name = None if noname else self.arg[1]
@@ -277,92 +318,114 @@ class Tid(ADT) :
     def __hash__(self):
         return hash(self.number)
 
-class Subs(Seq) :
+
+class Subs(Seq):
     "a set of subroutines"
     pass
 
-class Args(Seq) :
+
+class Args(Seq):
     "sequence of arguments"
     pass
-class Blks(Seq) :
+
+
+class Blks(Seq):
     "sequence of basic blocks"
     pass
-class Phis(Seq) :
+
+
+class Phis(Seq):
     "sequence of phi-nodes"
     pass
-class Defs(Seq) :
+
+
+class Defs(Seq):
     "sequence of definitions"
     pass
-class Jmps(Seq) :
+
+
+class Jmps(Seq):
     "sequence of jump terms"
     pass
 
-class Memmap(Seq) :
+
+class Memmap(Seq):
     "sequence of memory annotations "
     pass
 
-class Region(ADT) :
+
+class Region(ADT):
     "Region(beg,end) a pair of addresses, that denote a memory region"
-    @property
-    def beg(self) : return self.arg[0]
 
     @property
-    def end(self) : return self.arg[1]
+    def beg(self):
+        return self.arg[0]
 
-class Section(ADT,Sequence) :
+    @property
+    def end(self):
+        return self.arg[1]
+
+
+class Section(ADT, Sequence):
     """A contiguous piece of memory in a process image"""
 
     @property
-    def name(self) :
+    def name(self):
         "name associated with the section"
         return self.arg[0]
 
     @property
-    def beg(self) :
+    def beg(self):
         "starting address"
         return self.arg[1]
 
     @property
-    def data(self) :
+    def data(self):
         "an array of bytes"
         return self.arg[2]
 
     @property
-    def end(self) :
+    def end(self):
         "an address of last byte"
         return self.beg + len(self.data)
 
-    def __getitem__(self,i) :
+    def __getitem__(self, i):
         return self.data.__getitem__(i)
 
-    def __len__(self) :
+    def __len__(self):
         return self.data.__len__()
 
-class Sections(ADT,Mapping) :
+
+class Sections(ADT, Mapping):
     " a mapping from names to sections"
+
     def __init__(self, *args):
         super(Sections, self).__init__(args)
-        self.elements = dict((x.name,x) for x in args[0])
+        self.elements = dict((x.name, x) for x in args[0])
 
-    def __getitem__(self,i) :
+    def __getitem__(self, i):
         return self.elements.__getitem__(i)
 
-    def __len__(self) :
+    def __len__(self):
         return self.elements.__len__()
 
-    def __iter__(self) :
+    def __iter__(self):
         return self.elements.__iter__()
 
-class Annotation(ADT) :
+
+class Annotation(ADT):
     """Annotation(Region(beg,end), Attr(name,value))
 
     Each annotation denotes an association between a memory region and
     some arbitrary property, denoted with an attribute.
     """
+
     pass
 
+
 def parse_addr(str):
-    return int(str.split(':')[0],16)
+    return int(str.split(":")[0], 16)
+
 
 def loads(s):
     "loads bir object from string"

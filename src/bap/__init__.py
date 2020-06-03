@@ -140,7 +140,7 @@ Where data is actual string of bytes.
 
 from .bap import run
 
-try :
+try:
     from .rpc import disasm, image
 except ImportError:
     pass

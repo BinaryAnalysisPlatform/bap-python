@@ -6,6 +6,7 @@ from signal import signal, SIGTERM
 import requests
 from subprocess import Popen
 from mmap import mmap
+
 if sys.version_info > (3, 0):
     from urllib.parse import urlparse, parse_qs
 else:
@@ -29,49 +30,51 @@ server_lock = threading.Lock()
 requests_lock = threading.Lock()
 request = None
 
+
 def init_requests():
     global request
     with requests_lock:
         if request == None:
             request = requests.Session()
             adapter = requests.adapters.HTTPAdapter(
-                    pool_connections=1000,
-                    pool_maxsize=1000,
-                    max_retries=10,
-                    pool_block=True)
-            request.mount('http://', adapter)
+                pool_connections=1000,
+                pool_maxsize=1000,
+                max_retries=10,
+                pool_block=True,
+            )
+            request.mount("http://", adapter)
+
 
 init_requests()
 
 
 def del_instance():
-    instance = getattr(storage, 'instance', None)
+    instance = getattr(storage, "instance", None)
     if instance is not None:
         instance.close()
 
+
 def get_instance(**kwargs):
-    instance = getattr(storage, 'instance', None)
+    instance = getattr(storage, "instance", None)
     if instance is None:
-        args = kwargs.get('server', {})
+        args = kwargs.get("server", {})
         storage.instance = Bap(args)
     return storage.instance
 
+
 atexit.register(del_instance)
-signal(SIGTERM, lambda x,y: del_instance)
+signal(SIGTERM, lambda x, y: del_instance)
 
 
 def spawn_server(**kwargs):
-    port = str(kwargs.get('port', 8080))
-    name = kwargs.get('name', 'bap-server')
+    port = str(kwargs.get("port", 8080))
+    name = kwargs.get("name", "bap-server")
     with server_lock:
         if port in servers:
             return servers[port]
         else:
-            process = Popen([name, '--port=' + port])
-            server  = {
-                'server' : process,
-                'url' : "http://127.0.0.1:{0}".format(port)
-            }
+            process = Popen([name, "--port=" + port])
+            server = {"server": process, "url": "http://127.0.0.1:{0}".format(port)}
             servers[port] = server
             return server
 
@@ -80,8 +83,10 @@ def disasm(obj, **kwargs):
     r""" disasm(obj) disassembles provided object.
     Returns a generator object yielding instructions.
     """
+
     def run(obj):
         return get_instance(**kwargs).insns(obj, **kwargs)
+
     if isinstance(obj, Id):
         return run(obj)
     elif isinstance(obj, Resource):
@@ -89,16 +94,16 @@ def disasm(obj, **kwargs):
     else:
         return run(load_chunk(obj, **kwargs))
 
+
 def image(f, **kwargs):
     bap = get_instance(**kwargs)
     if os.path.isfile(f) and not os.path.isabs(f):
         f = os.path.abspath(f)
     return Image(bap.load_file(f), bap)
 
+
 def load_chunk(s, **kwargs):
     return get_instance(**kwargs).load_chunk(s, **kwargs)
-
-
 
 
 class Resource(object):
@@ -112,11 +117,10 @@ class Resource(object):
         if self.msg is None:
             self.msg = self.bap.get_resource(self.ident)
             if not self._name in self.msg:
-                if 'error' in msg:
+                if "error" in msg:
                     raise ServerError(response)
                 else:
-                    msg = "Expected {0} msg but got {1}".format(
-                        self._name, msg)
+                    msg = "Expected {0} msg but got {1}".format(self._name, msg)
                     raise RuntimeError(msg)
 
     def get(self, child):
@@ -126,13 +130,13 @@ class Resource(object):
 
 class Project(Resource):
     def __init__(self, ident, bap):
-        super(Image,self).__init__('program', ident, bap)
+        super(Image, self).__init__("program", ident, bap)
 
     def load_program(self):
-        self.program = bir.loads(self.get('program'))
+        self.program = bir.loads(self.get("program"))
 
-    def __getattr__(self,name):
-        if name == 'program':
+    def __getattr__(self, name):
+        if name == "program":
             self.load_program()
             return self.program
         else:
@@ -141,10 +145,10 @@ class Project(Resource):
 
 class Image(Resource):
     def __init__(self, ident, bap):
-        super(Image,self).__init__('image', ident, bap)
+        super(Image, self).__init__("image", ident, bap)
 
     def load_segments(self):
-        ss = self.get('segments')
+        ss = self.get("segments")
         self.segments = [Segment(s, self) for s in ss]
 
     def get_symbol(self, name, d=None):
@@ -155,19 +159,20 @@ class Image(Resource):
         return d
 
     def __getattr__(self, name):
-        if name == 'segments':
+        if name == "segments":
             self.load_segments()
             return self.segments
         else:
             return self.get(name)
 
+
 class Segment(Resource):
     def __init__(self, ident, parent):
-        super(Segment, self).__init__('segment', ident, parent.bap)
+        super(Segment, self).__init__("segment", ident, parent.bap)
         self.parent = parent
 
     def load_symbols(self):
-        self.symbols = [Symbol(s, self) for s in self.get('symbols')]
+        self.symbols = [Symbol(s, self) for s in self.get("symbols")]
 
     def get_symbol(self, name, d=None):
         try:
@@ -176,48 +181,51 @@ class Segment(Resource):
             return d
 
     def __getattr__(self, name):
-        if name == 'symbols':
+        if name == "symbols":
             self.load_symbols()
             return self.symbols
-        elif name == 'addr' or name == 'size':
-            return self.get('memory')[name]
-        elif name == 'memory':
-            self.memory = Memory(self.get('memory'), self)
+        elif name == "addr" or name == "size":
+            return self.get("memory")[name]
+        elif name == "memory":
+            self.memory = Memory(self.get("memory"), self)
             return self.memory
         else:
             return self.get(name)
 
+
 class Symbol(Resource):
     def __init__(self, ident, parent):
-        super(Symbol, self).__init__('symbol', ident, parent.bap)
+        super(Symbol, self).__init__("symbol", ident, parent.bap)
         self.parent = parent
 
     def load_chunks(self):
-        self.chunks = [Memory(s, self) for s in self.get('chunks')]
+        self.chunks = [Memory(s, self) for s in self.get("chunks")]
 
     def __getattr__(self, name):
-        if name == 'chunks':
+        if name == "chunks":
             self.load_chunks()
             return self.chunks
-        elif name == 'addr':
+        elif name == "addr":
             self.load_chunks()
             return self.chunks[0].addr
         else:
             return self.get(name)
 
+
 class Memory(object):
     def __init__(self, mem, parent):
         self.parent = parent
-        self.size = int(mem['size'])
-        self.addr = int(mem['addr'])
-        self.links = mem['links']
+        self.size = int(mem["size"])
+        self.addr = int(mem["addr"])
+        self.links = mem["links"]
 
     def load_data(self):
         try:
-            url = (urlparse(url) for url in self.links
-                   if urlparse(url).scheme == 'mmap').next()
+            url = (
+                urlparse(url) for url in self.links if urlparse(url).scheme == "mmap"
+            ).next()
             qs = parse_qs(url.query)
-            offset = int(qs['offset'][0])
+            offset = int(qs["offset"][0])
             with open(url.path, "rw+b") as f:
                 mm = mmap(f.fileno(), length=0)
                 mm.seek(offset)
@@ -227,7 +235,7 @@ class Memory(object):
             self.data = None
 
     def __getattr__(self, name):
-        if name == 'data':
+        if name == "data":
             self.load_data()
             return self.data
         raise AttributeError(name)
@@ -240,21 +248,26 @@ class ServerError(Exception):
     def __str__(self):
         return self.msg
 
+
 class Error(object):
     def __init__(self, err):
         self.__dict__.update(err)
-        self.__dict__.update(err['error'])
+        self.__dict__.update(err["error"])
 
     def __str__(self):
         return "{severity}: {description}".format(**self.error)
 
+
 class Id(object):
     def __init__(self, r):
         self.value = r
+
     def __str__(self):
         return str(self.value)
 
+
 RETRIES = 10
+
 
 class Bap(object):
     def __init__(self, server={}):
@@ -266,8 +279,9 @@ class Bap(object):
         self.last_id = 0
         for attempt in range(RETRIES):
             try:
-                self.capabilities = self.call({'init' : {
-                    'version' : '0.1'}}).next()['capabilities']
+                self.capabilities = self.call({"init": {"version": "0.1"}}).next()[
+                    "capabilities"
+                ]
                 break
             except Exception:
                 if attempt + 1 == RETRIES:
@@ -278,49 +292,48 @@ class Bap(object):
         if not "capabilities" in self.__dict__:
             raise RuntimeError("Failed to connect to BAP server")
         self.data = {}
-        self.temp = NamedTemporaryFile('rw+b', prefix="bap-")
+        self.temp = NamedTemporaryFile("rw+b", prefix="bap-")
 
     def insns(self, src, **kwargs):
-        req = {'resource' : src}
+        req = {"resource": src}
         req.update(kwargs)
-        res = self.call({'get_insns' : req})
+        res = self.call({"get_insns": req})
         for msg in res:
-            if 'error' in msg:
+            if "error" in msg:
                 err = Error(msg)
                 if err.severity in DEBUG_LEVEL:
                     print(err)
             else:
-                return (parse_insn(js) for js in msg['insns'])
+                return (parse_insn(js) for js in msg["insns"])
 
     def close(self):
         self.__exit__()
 
     def load_file(self, name):
-        return self._load_resource({'load_file' : {
-            'url' : 'file://' + name}})
+        return self._load_resource({"load_file": {"url": "file://" + name}})
 
     def get_resource(self, name):
-        return self.call({'get_resource' : name}).next()
+        return self.call({"get_resource": name}).next()
 
     def load_chunk(self, data, **kwargs):
-        kwargs.setdefault('url', self.mmap(data))
-        kwargs.setdefault('arch', 'i386')
-        kwargs.setdefault('addr', 0)
-        addr = kwargs['addr']
+        kwargs.setdefault("url", self.mmap(data))
+        kwargs.setdefault("arch", "i386")
+        kwargs.setdefault("addr", 0)
+        addr = kwargs["addr"]
         if isinstance(addr, str):
             addr = int(addr, 0)
-        kwargs['addr'] = '0x{0:x}'.format(addr)
+        kwargs["addr"] = "0x{0:x}".format(addr)
 
-        return self._load_resource({'load_memory_chunk' : kwargs})
+        return self._load_resource({"load_memory_chunk": kwargs})
 
     def __exit__(self):
-        if 'server' in self.__dict__:
+        if "server" in self.__dict__:
             self.server.terminate()
         self.temp.close()
 
-    def dumps(self,dic):
+    def dumps(self, dic):
         self.last_id += 1
-        dic['id'] = Id(self.last_id)
+        dic["id"] = Id(self.last_id)
         return json.dumps(dic, default=str)
 
     def call(self, data):
@@ -330,10 +343,8 @@ class Bap(object):
             gen = (self.dumps(msg) for msg in data)
             return jsons(request.post(self.url, data=gen))
 
-
     def mmap(self, data):
-        url = "mmap://{0}?offset=0&length={1}".format(
-            self.temp.name, len(data))
+        url = "mmap://{0}?offset=0&length={1}".format(self.temp.name, len(data))
         os.ftruncate(self.temp.fileno(), 4096)
         mm = mmap(self.temp.fileno(), 4096)
         mm.write(data)
@@ -342,32 +353,36 @@ class Bap(object):
 
     def _load_resource(self, res):
         rep = self.call(res).next()
-        if 'error' in rep:
+        if "error" in rep:
             raise ServerError(rep)
-        return Id(rep['resource'])
+        return Id(rep["resource"])
 
 
 def jsons(r, p=0):
-    dec = json.JSONDecoder(encoding='utf-8')
+    dec = json.JSONDecoder(encoding="utf-8")
     while True:
-        obj,p = dec.scan_once(r.text,p)
+        obj, p = dec.scan_once(r.text, p)
         yield obj
 
+
 def parse_target(js):
-    if 'target' in js:
-        return arm.loads(js['target'])
+    if "target" in js:
+        return arm.loads(js["target"])
     else:
         return None
+
 
 def parse_bil(js):
-    if 'bil' in js:
-        return [bil.loads(s) for s in js['bil']]
+    if "bil" in js:
+        return [bil.loads(s) for s in js["bil"]]
     else:
         return None
 
+
 def parse_insn(js):
-    js.update(js['memory'], bil=parse_bil(js), target=parse_target(js))
+    js.update(js["memory"], bil=parse_bil(js), target=parse_target(js))
     return asm.Insn(**js)
 
+
 def hexs(data):
-    return ' '.join(x.encode('hex') for x in data)
+    return " ".join(x.encode("hex") for x in data)
