@@ -7,10 +7,6 @@ from .asm import *
 from .bil import *
 
 
-class Reg(ADT):
-    pass
-
-
 class Nil(Reg):
     pass
 
@@ -99,31 +95,11 @@ class ITSTATE(CCR):
     pass
 
 
-class Insn(ADT):
-    pass
-
-
-class Move(Insn):
-    pass
-
-
 class Bits(Insn):
     pass
 
 
 class Mult(Insn):
-    pass
-
-
-class Mem(Insn):
-    pass
-
-
-class Branch(Insn):
-    pass
-
-
-class Special(Insn):
     pass
 
 

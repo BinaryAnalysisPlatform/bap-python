@@ -117,10 +117,10 @@ class Resource(object):
         if self.msg is None:
             self.msg = self.bap.get_resource(self.ident)
             if not self._name in self.msg:
-                if "error" in msg:
+                if "error" in self.msg:
                     raise ServerError(response)
                 else:
-                    msg = "Expected {0} msg but got {1}".format(self._name, msg)
+                    msg = "Expected {0} msg but got {1}".format(self._name, self.msg)
                     raise RuntimeError(msg)
 
     def get(self, child):
