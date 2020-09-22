@@ -126,7 +126,7 @@ class Resource(object):
 
 class Project(Resource):
     def __init__(self, ident, bap):
-        super(Image,self).__init__('program', ident, bap)
+        super(Image,self).__init__('program', ident, bap) # pylint: disable=bad-super-call
 
     def load_program(self):
         self.program = bir.loads(self.get('program'))
