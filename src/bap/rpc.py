@@ -171,7 +171,7 @@ class Segment(Resource):
 
     def get_symbol(self, name, d=None):
         try:
-            return (s for s in self.symbols if s.name == name).next()
+            return next(s for s in self.symbols if s.name == name)
         except StopIteration:
             return d
 
@@ -214,8 +214,8 @@ class Memory(object):
 
     def load_data(self):
         try:
-            url = (urlparse(url) for url in self.links
-                   if urlparse(url).scheme == 'mmap').next()
+            url = next(urlparse(url) for url in self.links
+                   if urlparse(url).scheme == 'mmap')
             qs = parse_qs(url.query)
             offset = int(qs['offset'][0])
             with open(url.path, "rw+b") as f:
@@ -266,8 +266,8 @@ class Bap(object):
         self.last_id = 0
         for attempt in range(RETRIES):
             try:
-                self.capabilities = self.call({'init' : {
-                    'version' : '0.1'}}).next()['capabilities']
+                self.capabilities = next(self.call({'init' : {
+                    'version' : '0.1'}}))['capabilities']
                 break
             except Exception:
                 if attempt + 1 == RETRIES:
@@ -278,7 +278,7 @@ class Bap(object):
         if not "capabilities" in self.__dict__:
             raise RuntimeError("Failed to connect to BAP server")
         self.data = {}
-        self.temp = NamedTemporaryFile('rw+b', prefix="bap-")
+        self.temp = NamedTemporaryFile('w+b', prefix="bap-")
 
     def insns(self, src, **kwargs):
         req = {'resource' : src}
@@ -300,7 +300,7 @@ class Bap(object):
             'url' : 'file://' + name}})
 
     def get_resource(self, name):
-        return self.call({'get_resource' : name}).next()
+        return next(self.call({'get_resource' : name}))
 
     def load_chunk(self, data, **kwargs):
         kwargs.setdefault('url', self.mmap(data))
@@ -341,14 +341,13 @@ class Bap(object):
         return url
 
     def _load_resource(self, res):
-        rep = self.call(res).next()
+        rep = next(self.call(res))
         if 'error' in rep:
             raise ServerError(rep)
         return Id(rep['resource'])
 
-
 def jsons(r, p=0):
-    dec = json.JSONDecoder(encoding='utf-8')
+    dec = json.JSONDecoder()
     while True:
         obj,p = dec.scan_once(r.text,p)
         yield obj

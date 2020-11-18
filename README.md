@@ -59,7 +59,7 @@ Installation section).
 
 ```python
     >>> import bap
-    >>> print '\n'.join(insn.asm for insn in bap.disasm("\x48\x83\xec\x08"))
+    >>> print '\n'.join(insn.asm for insn in bap.disasm(b"\x48\x83\xec\x08"))
         decl    %eax
         subl    $0x8, %esp
 ```
