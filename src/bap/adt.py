@@ -182,7 +182,10 @@ leading to fragile and hard to support programs.
 
 """
 
-from collections import Iterable,Sequence,Mapping
+try:
+    from collections.abc import Iterable,Sequence,Mapping
+except ImportError:
+    from collections import Iterable,Sequence,Mapping
 
 class ADT(object):
     """Algebraic Data Type.
