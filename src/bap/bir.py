@@ -248,7 +248,16 @@ class Attrs(Map) :
 class Attr(ADT) :
     """Attribute is a pair of attribute name and value,
     both represented with str"""
-    pass
+
+    @property
+    def name(self):
+        """name of attribute"""
+        return self.arg[0]
+
+    @property
+    def value(self):
+        """value of attribute"""
+        return self.arg[1]
 
 class Values(Map) :
     """A set of possible values, taken by a phi-node.
@@ -362,7 +371,15 @@ class Annotation(ADT) :
     Each annotation denotes an association between a memory region and
     some arbitrary property, denoted with an attribute.
     """
-    pass
+    @property
+    def region(self):
+        """memory region"""
+        return self.arg[0]
+
+    @property
+    def attr(self):
+        """memory region attribute"""
+        return self.arg[1]
 
 def parse_addr(str):
     return int(str.split(':')[0],16)
